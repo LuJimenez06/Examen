@@ -23,7 +23,6 @@
         <input type="password" id="password" required><br>
 
         <button type="submit">Iniciar sesión</button>
-        <br>
         <button type="button" id="open-register-modal">Registrar Nuevo Usuario</button>
     </form>
 
@@ -72,7 +71,7 @@
         const closeModalBtn = document.getElementById("close-modal");
         const registerForm = document.getElementById("register-form");
 
-        openRegisterModalBtn.addEventListener("click", () => registerModal.style.display = "flex");
+        openRegisterModalBtn.addEventListener("click", () => registerModal.style.display = "block");
         closeModalBtn.addEventListener("click", () => registerModal.style.display = "none");
 
         // Cerrar modal al hacer clic fuera de él

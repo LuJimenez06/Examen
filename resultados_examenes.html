@@ -119,6 +119,7 @@
                         const examen = alumno.examenes[examId];
     
                         if (examen) {
+                            const nombreCompleto = examen.nombreCompleto || "Nombre no disponible"; // Obtener el nombre del alumno
                             let aciertos = 0;
                             const totalPreguntas = Object.keys(examenData.preguntas).length;
                             const respuestas = examen.respuestas;
@@ -128,10 +129,10 @@
                             card.className = "card mb-3";
                             card.innerHTML = `
                                 <div class="card-header">
-                                    <h5>${alumno.nombreCompleto}</h5>
+                                    <h5>${nombreCompleto}</h5>
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>Nombre del Alumno:</strong> ${alumno.nombreCompleto}</p>
+                                    <p><strong>Nombre del Alumno:</strong> ${nombreCompleto}</p>
                                     <p><strong>Materia:</strong> ${examenData.materia}</p>
                                     <p><strong>Examen:</strong> ${examenData.nombre}</p>
                                     <h6>Detalles de Respuestas:</h6>

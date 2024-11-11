@@ -8,7 +8,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
         import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
-    
+
         const firebaseConfig = {
             apiKey: "AIzaSyCjRRBzlhKPtp74LoxjHpgPlg-CtGLyg-Y",
             authDomain: "examen-e836d.firebaseapp.com",
@@ -18,99 +18,88 @@
             appId: "1:900551617182:web:3925b64bd5579711d1e98f",
             databaseURL: "https://examen-e836d-default-rtdb.firebaseio.com/"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-        
-        // Función para obtener el ID del usuario autenticado
+
         function getAuthenticatedUserId() {
-            const userId = localStorage.getItem('userId'); // Cambia esto a la forma en que obtienes el ID del usuario
-            return userId ? userId : null; // Retorna el ID o null si no está autenticado
+            const userId = localStorage.getItem('userId');
+            return userId ? userId : null;
         }
-    
+
         document.addEventListener("DOMContentLoaded", function() {
-            const idAlumno = getAuthenticatedUserId(); // Obtener ID del usuario autenticado
+            const idAlumno = getAuthenticatedUserId();
             if (!idAlumno) {
                 alert("No estás autenticado. Por favor inicia sesión.");
+                window.location.href = 'index.html';
                 return;
             }
-            
-            cargarFichasAlumno(idAlumno); // Cargar fichas al iniciar la página
-    
+            cargarFichasAlumno(idAlumno);
+
             document.getElementById('registro-formulario').addEventListener('submit', function(event) {
                 event.preventDefault();
-    
-                const nombreAlumno = document.getElementById('nombre-alumno').value; // Obtener el nombre del alumno
+                const nombreAlumno = document.getElementById('nombre-alumno').value;
                 const codigoMateria = document.getElementById('codigo-materia').value.toUpperCase();
-    
-                // Verificar si la materia existe en la base de datos
-                const materiaRef = ref(database, 'materias/');
+                const materiaRef = ref(database, `materias/${codigoMateria}`);
+
                 get(materiaRef).then(snapshot => {
                     if (snapshot.exists()) {
-                        let encontrado = false;
-                        snapshot.forEach(childSnapshot => {
-                            const data = childSnapshot.val();
-                            if (data.codigo === codigoMateria) {
-                                encontrado = true;
-                                const nuevaFichaRef = ref(database, `students/${idAlumno}/fichas/${codigoMateria}`);
-                                
-                                // Verificar si la ficha ya existe antes de crearla
-                                get(nuevaFichaRef).then(existingSnapshot => {
-                                    if (!existingSnapshot.exists()) {
-                                        const datosAlumno = {
-                                            nombre: nombreAlumno, // Agregar el nombre del alumno aquí
-                                            materia: data.materia,
-                                            codigo: codigoMateria,
-                                            maestro: data.nombreReal || "Desconocido",
-                                            calificaciones: ["-", "-", "-", "-", "-"]
-                                        };
-    
-                                        set(nuevaFichaRef, datosAlumno)
-                                            .then(() => {
-                                                alert(`Registro exitoso. Estás inscrito en ${data.materia}`);
-                                                agregarTarjetaFicha(datosAlumno.nombre, datosAlumno.materia, codigoMateria, datosAlumno.maestro, datosAlumno.calificaciones); // Cambiar el orden aquí
-                                                cerrarModal();
-                                            })
-                                            .catch(error => {
-                                                console.error('Error al registrar la ficha del estudiante:', error);
-                                                alert('Hubo un error al registrar la ficha del estudiante. Inténtalo de nuevo.');
-                                            });
-                                    } else {
-                                        alert('Ya estás inscrito en esta materia.');
-                                    }
-                                }).catch(error => {
-                                    console.error('Error al verificar la ficha del estudiante:', error);
-                                    alert('Hubo un error al verificar la ficha del estudiante. Inténtalo de nuevo.');
-                                });
+                        const data = snapshot.val();
+                        const nuevaFichaRef = ref(database, `students/${idAlumno}/fichas/${codigoMateria}`);
+
+                        get(nuevaFichaRef).then(existingSnapshot => {
+                            if (!existingSnapshot.exists()) {
+                                const datosFicha = {
+                                    materia: data.materia,
+                                    maestro: data.maestro || "Desconocido",
+                                    calificaciones: ["-", "-", "-", "-", "-"], // Calificaciones con valor predefinido "-"
+                                    calificacionFinal: "-",
+                                    codigo: codigoMateria, // Agregar código de materia
+                                    codigoMaestro: data.codigoMaestro || "", // Asumir que `data` tiene `codigoMaestro`
+                                    nombreMaestro: data.maestro || "Desconocido", // Usar el nombre del maestro
+                                    nombreAlumno: nombreAlumno // Agregar el nombre del alumno
+                                };
+
+                                set(nuevaFichaRef, datosFicha)
+                                    .then(() => {
+                                        alert(`Registro exitoso. Estás inscrito en ${data.materia}`);
+                                        agregarTarjetaFicha(datosFicha);
+                                        cerrarModal();
+                                    })
+                                    .catch(error => {
+                                        console.error('Error al registrar la ficha del estudiante:', error);
+                                        alert('Hubo un error al registrar la ficha del estudiante. Inténtalo de nuevo.');
+                                    });
+                            } else {
+                                alert('Ya estás inscrito en esta materia.');
                             }
+                        }).catch(error => {
+                            console.error('Error al verificar la ficha del estudiante:', error);
+                            alert('Hubo un error al verificar la ficha del estudiante. Inténtalo de nuevo.');
                         });
-                        if (!encontrado) {
-                            alert('Código de materia no válido. Verifica e inténtalo nuevamente.');
-                        }
                     } else {
-                        alert('No se encontraron materias en la base de datos.');
+                        alert('Código de materia no válido. Verifica e inténtalo nuevamente.');
                     }
                 }).catch(error => {
                     console.error('Error al verificar el código de materia:', error);
                     alert('Hubo un error al verificar el código de la materia. Inténtalo de nuevo.');
                 });
             });
-    
+
             document.getElementById('abrir-modal-btn').addEventListener('click', abrirModal);
             document.getElementById('cerrar-modal-btn').addEventListener('click', cerrarModal);
         });
-    
+
         function cargarFichasAlumno(idAlumno) {
             const fichasAlumnoRef = ref(database, `students/${idAlumno}/fichas`);
-    
             get(fichasAlumnoRef).then(snapshot => {
                 const contenedorFichas = document.getElementById('tarjetas-fichas');
-                contenedorFichas.innerHTML = ''; // Limpiar el contenedor antes de cargar nuevas fichas
-    
+                contenedorFichas.innerHTML = '';
+
                 if (snapshot.exists()) {
                     snapshot.forEach(fichaSnapshot => {
                         const datosFicha = fichaSnapshot.val();
-                        agregarTarjetaFicha(datosFicha.nombre, datosFicha.materia, datosFicha.codigo, datosFicha.maestro, datosFicha.calificaciones); // Cambiar el orden aquí
+                        agregarTarjetaFicha(datosFicha);
                     });
                 } else {
                     console.log("No hay fichas registradas para este alumno.");
@@ -121,114 +110,124 @@
                 alert('Hubo un error al cargar las fichas del estudiante.');
             });
         }
-    
-        function agregarTarjetaFicha(nombreAlumno, nombreMateria, codigoMateria, nombreMaestro, calificaciones) {
+
+        function agregarTarjetaFicha(datosFicha) {
             const contenedorFichas = document.getElementById('tarjetas-fichas');
             const tarjetaFicha = document.createElement('div');
             tarjetaFicha.className = 'tarjeta-ficha';
+
+            const calificacionesHTML = datosFicha.calificaciones
+                .map(calificacion => `<td>${calificacion}</td>`)
+                .join('');
+
             tarjetaFicha.innerHTML = `
-                 <!-- Muestra el nombre del alumno aquí -->
-                <h3>${nombreMateria}</h3>
-                <p>Alumno: ${nombreAlumno}</p>
-                <p>Código: ${codigoMateria}</p>
-                <p>Maestro: ${nombreMaestro}</p>
-                <p>Calificaciones:</p>
-                <ul>
-                    ${calificaciones.map(calificacion => `<li>${calificacion}</li>`).join('')}
-                </ul>
+                <center> <h3>${datosFicha.materia}</h3></center>
+                <table>
+                    <tr>
+                        <th>Codigo</th>
+                        <td colspan="6">${datosFicha.codigo}</td>
+                    </tr>
+                    <tr>
+                        <th>Maestro</th>
+                        <td colspan="6">${datosFicha.codigoMaestro}</td>
+                    </tr>
+                    <tr>
+                        <th>Alumno</th>
+                        <td colspan="6">${datosFicha.nombreAlumno}</td>
+                    </tr>
+                    <tr>
+                        <th>Calificaciones</th>
+                        <td>${calificacionesHTML}</td>
+                    </tr>
+                    <tr>
+                        <th>Calificación Final</th>
+                        <td colspan="6">${datosFicha.calificacionFinal}</td>
+                    </tr>
+                </table>
             `;
             contenedorFichas.appendChild(tarjetaFicha);
         }
-    
+
         function abrirModal() {
             document.getElementById('modal').style.display = 'block';
         }
-    
+
         function cerrarModal() {
             document.getElementById('modal').style.display = 'none';
-            document.getElementById('registro-formulario').reset(); // Limpiar formulario al cerrar el modal
+            document.getElementById('registro-formulario').reset();
         }
-    </script>         
+    </script>
     <style>
-        /* Estilos básicos */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        .container {
-            padding: 20px;
-        }
-
-        /* Botón para abrir el modal */
-        #abrir-modal-btn {
-            padding: 10px 20px;
-            background-color: #095331;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px; /* Añadido para mejorar la apariencia */
-            transition: background-color 0.3s; /* Transición suave */
-        }
-
-        #abrir-modal-btn:hover {
-            background-color: #073e24; /* Color más oscuro al pasar el mouse */
-        }
-
-        /* Estilos para el modal */
+        /* Estilos del modal */
         #modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
         }
 
         .modal-content {
-            background-color: #fff;
+            background-color: #fefefe;
+            margin: 15% auto;
             padding: 20px;
-            border-radius: 8px;
-            width: 300px;
-            position: relative;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para el modal */
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #cerrar-modal-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 20px; /* Tamaño más grande para mejor visibilidad */
+        }
+
+        #cerrar-modal-btn:hover,
+        #cerrar-modal-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         .tarjeta-ficha {
-            background-color: #f4f4f4;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tarjeta-ficha table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .tarjeta-ficha th,
+        .tarjeta-ficha td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .tarjeta-ficha th {
+            background-color: #f2f2f2;
+        }
+
+        .tarjeta-ficha td {
             text-align: center;
-            transition: transform 0.2s; /* Transición suave al pasar el mouse */
-        }
-
-        .tarjeta-ficha:hover {
-            transform: scale(1.05); /* Efecto de aumento al pasar el mouse */
-        }
-
-        #tarjetas-fichas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px; /* Espacio entre tarjetas */
         }
     </style>
 </head>
 <body>
-    <!-- Barra de navegación -->
     <nav class="navbar">
         <div class="navbar-brand">Panel de Alumnos</div>
         <ul class="navbar-menu">
@@ -242,19 +241,19 @@
     <h1>Registro de Fichas de Alumno</h1>
     <button id="abrir-modal-btn">Registrar Materia</button>
     <div class="container">
-        
         <div id="tarjetas-fichas"></div>
 
+        <!-- Modal para registrar materia -->
         <div id="modal">
             <div class="modal-content">
                 <span id="cerrar-modal-btn">&times;</span>
                 <h2>Registrar Materia</h2>
                 <form id="registro-formulario">
                     <label for="nombre-alumno">Nombre del Alumno:</label>
-                    <input type="text" id="nombre-alumno" required><br>
+                    <input type="text" id="nombre-alumno" required>
 
-                    <label for="codigo-materia">Código de Materia:</label>
-                    <input type="text" id="codigo-materia" required><br>
+                    <label for="codigo-materia">Código de la Materia:</label>
+                    <input type="text" id="codigo-materia" required>
 
                     <button type="submit">Registrar</button>
                 </form>

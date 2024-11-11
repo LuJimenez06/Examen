@@ -25,17 +25,53 @@
             <li><a href="index.html">Cerrar Sesión</a></li>
         </ul>
     </nav>
-
-    <h1>Crear o Modificar Examen y Preguntas</h1>
     
-    <button type="button" id="crearExamenBtn">Crear Nuevo Examen</button>
+    <h1>Crear o Modificar Examen y Preguntas</h1>
+    <table> 
+        <tr>
+            <td>
+                <label for="nombreExamen">Nombre del Examen:</label>
+                <input type="text" id="nombreExamen" placeholder="Introduce el nombre del examen" required>
+            </td>
+            <td>
+                <label for="materiaSelect">Selecciona la materia:</label>
+                <select id="materiaSelect" required>
+                    <option value="">Selecciona una materia</option>
+                    <option value="Matematicas">Matemáticas</option>
+                    <option value="Español">Español</option>
+                    <option value="Historia">Historia</option>
+                    <option value="Geografia">Geografía</option>
+                    <option value="Biologia">Biología</option>
+                    <option value="Fisica">Física</option>
+                    <option value="Quimica">Química</option>
+                    <option value="Civica">Cívica</option>
+                    <option value="Artes">Artes</option>
+                    <option value="Informatica">Informática</option>
+                    <option value="Etica">Ética</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <table width="1200px">
+        <tr>
+            <td> 
+                <button type="button" id="crearExamenBtn">Crear Nuevo Examen</button>
+            </td>
+            <td>
+                <button type="button" id="editarExamenBtn" class="hidden">Editar Examen</button>
+            </td>
+            <td>
+                <button type="button" id="eliminarExamenBtn" class="hidden">Eliminar Examen</button>
+            </td>
+        </tr>
+    </table>
+
 
     <h2>Seleccionar Examen para Modificar</h2>
     <select id="examenesSelect">
         <option value="">Selecciona un examen</option>
     </select>
     <button type="button" id="cargarExamenBtn">Cargar Examen</button>
-    <button type="button" id="editarExamenBtn" class="hidden">Editar Examen</button>
 
     <div id="examenContainer" class="hidden">
         <h2>Agregar Preguntas</h2>
@@ -131,8 +167,9 @@
 
         // Crear nuevo examen
         document.getElementById("crearExamenBtn").addEventListener("click", function() {
-            const nombreExamen = prompt("Introduce el nombre del nuevo examen:");
-            const materia = prompt("Introduce la materia del examen:");
+            const nombreExamen = document.getElementById("nombreExamen").value; // Obtener el valor del input
+            const materia = document.getElementById("materiaSelect").value; // Obtener el valor del select
+
             if (nombreExamen && materia) {
                 const nuevoExamenRef = push(ref(database, 'examenes'));
                 set(nuevoExamenRef, { nombre: nombreExamen, materia: materia });
@@ -140,6 +177,12 @@
                 document.getElementById("examenContainer").style.display = "block";
                 alert(`Examen '${nombreExamen}' creado para la materia '${materia}'. Ahora puedes agregar preguntas.`);
                 cargarExamenes();
+
+                // Limpiar los campos después de crear el examen
+                document.getElementById("nombreExamen").value = '';
+                document.getElementById("materiaSelect").value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
             }
         });
 
@@ -173,12 +216,36 @@
 
         // Editar nombre y materia del examen
         document.getElementById("editarExamenBtn").addEventListener("click", function() {
-            const nuevoNombre = prompt("Introduce el nuevo nombre del examen:");
-            const nuevaMateria = prompt("Introduce la nueva materia del examen:");
+            const nuevoNombre = document.getElementById("nombreExamen").value; // Obtener el nuevo nombre del input
+            const nuevaMateria = document.getElementById("materiaSelect").value; // Obtener la nueva materia del select
+
             if (nuevoNombre && nuevaMateria) {
                 update(ref(database, `examenes/${examenId}`), { nombre: nuevoNombre, materia: nuevaMateria });
                 cargarExamenes();
                 alert("Examen actualizado.");
+
+                // Limpiar los campos después de editar el examen
+                document.getElementById("nombreExamen").value = '';
+                document.getElementById("materiaSelect").value = '';
+            } else {
+                alert("Por favor, completa todos los campos.");
+            }
+        });
+
+        // Botón para cargar y editar el examen seleccionado
+        document.getElementById("cargarExamenBtn").addEventListener("click", function() {
+            examenId = document.getElementById("examenesSelect").value;
+            if (examenId) {
+                // Cargar nombre y materia del examen seleccionado
+                onValue(ref(database, `examenes/${examenId}`), (snapshot) => {
+                    const examen = snapshot.val();
+                    document.getElementById("nombreExamen").value = examen.nombre; // Llenar nombre
+                    document.getElementById("materiaSelect").value = examen.materia; // Llenar materia
+                });
+
+                document.getElementById("examenContainer").style.display = "block";
+                mostrarPreguntas();
+                document.getElementById("editarExamenBtn").classList.remove("hidden");
             }
         });
 
@@ -386,6 +453,28 @@
             submitButton.textContent = "Agregar Pregunta";
             preguntaIdParaActualizar = null;
         }
+
+        // Agregar el evento para eliminar el examen
+        document.getElementById("eliminarExamenBtn").addEventListener("click", function() {
+            if (examenId) {
+                const confirmacion = confirm("¿Estás seguro de que deseas eliminar este examen?");
+                if (confirmacion) {
+                    remove(ref(database, `examenes/${examenId}`))
+                        .then(() => {
+                            alert("Examen eliminado.");
+                            cargarExamenes(); // Volver a cargar la lista de exámenes
+                            document.getElementById("examenContainer").style.display = "none"; // Ocultar el contenedor del examen
+                            examenId = null; // Limpiar el ID del examen
+                        })
+                        .catch((error) => {
+                            console.error("Error al eliminar el examen:", error);
+                            alert("Hubo un error al eliminar el examen. Inténtalo de nuevo.");
+                        });
+                }
+            } else {
+                alert("No hay examen seleccionado para eliminar.");
+            }
+        });
 
         // Inicializar
         cargarExamenes();

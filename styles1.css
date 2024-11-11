@@ -35,7 +35,7 @@ label {
     display: block;
     font-size: 14px;
     color: #4caf50;
-    text-align: center;
+    text-align: left;
     margin-bottom: 8px;
     width: 100%; /* Hace que los labels y los inputs ocupen el ancho completo */
 }
@@ -81,7 +81,6 @@ button:hover {
     color: #ffffff;
     padding: 10px 20px;
     border: none;
-    justify-content: center;
     border-radius: 5px;
     font-size: 16px;
     cursor: pointer;
@@ -90,7 +89,6 @@ button:hover {
 
 #open-register-modal:hover {
     background-color: #66bb6a;
-    justify-content: center;
 }
 
 /* Estilos para el modal */
@@ -112,8 +110,6 @@ button:hover {
     background-color: #fff;
     padding: 40px;
     border-radius: 10px;
-    text-align: center;
-    justify-content: center;
     width: 30%;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
 }

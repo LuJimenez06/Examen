@@ -22,6 +22,7 @@
         input[type="text"] { width: calc(100% - 20px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
         #tituloExamen { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
     </style>
+    <script src="auth.js"></script>
 </head>
 <body>
     <!-- Barra de navegación -->
@@ -48,6 +49,16 @@
     <select id="materiaSelect">
         <option value="">Selecciona una Materia</option>
         <option value="Matematicas">Matemáticas</option>
+        <option value="Español">Español</option>
+        <option value="Historia">Historia</option>
+        <option value="Geografia">Geografía</option>
+        <option value="Biologia">Biología</option>
+        <option value="Fisica">Física</option>
+        <option value="Quimica">Química</option>
+        <option value="Civica">Cívica</option>
+        <option value="Artes">Artes</option>
+        <option value="Informatica">Informática</option>
+        <option value="Etica">Ética</option>
         <!-- Agrega más materias según sea necesario -->
     </select>
     <!-- Selector de Examen -->
@@ -87,8 +98,8 @@
         materiaSelect.addEventListener("change", () => {
             const materiaSeleccionada = materiaSelect.value;
             examenSelect.innerHTML = '<option value="">Selecciona un Examen</option>';
+
             if (materiaSeleccionada) {
-                // Obtener y filtrar los exámenes según la materia seleccionada
                 onValue(ref(database, 'examenes'), (snapshot) => {
                     const examenes = snapshot.val();
                     for (let id in examenes) {
@@ -100,6 +111,9 @@
                             examenSelect.appendChild(option);
                         }
                     }
+                }, (error) => {
+                    console.error("Error al cargar los exámenes:", error);
+                    alert("Hubo un error al cargar los exámenes.");
                 });
             }
         });

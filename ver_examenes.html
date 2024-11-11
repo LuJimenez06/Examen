@@ -16,14 +16,23 @@
         #materiaSelect, #examenSelect, #cargarExamen, #asignarExamen {
             padding: 10px;
             font-size: 1em;
-            margin: 10px 0;
+            margin: 10px auto;
             border: 1px solid #ccc;
             border-radius: 5px;
             width: 100%;
             max-width: 300px;
             display: block;
-            margin-left: auto;
-            margin-right: auto;
+        }
+
+        #codigoMateriaInput {
+            padding: 10px;
+            font-size: 1em;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            max-width: 300px;
+            display: block;
         }
 
         #cuestionario {
@@ -97,6 +106,16 @@
     <select id="materiaSelect">
         <option value="">Selecciona una Materia</option>
         <option value="Matematicas">Matemáticas</option>
+        <option value="Español">Español</option>
+        <option value="Historia">Historia</option>
+        <option value="Geografia">Geografía</option>
+        <option value="Biologia">Biología</option>
+        <option value="Fisica">Física</option>
+        <option value="Quimica">Química</option>
+        <option value="Civica">Cívica</option>
+        <option value="Artes">Artes</option>
+        <option value="Informatica">Informática</option>
+        <option value="Etica">Ética</option>
         <!-- Agrega más materias según sea necesario -->
     </select>
     
@@ -105,8 +124,11 @@
         <option value="">Selecciona un Examen</option>
     </select>
     <button id="cargarExamen">Cargar Examen</button>
-    <h2 id="tituloExamen"></h2> <!-- Elemento para mostrar el título del examen -->
+    <h2 id="tituloExamen"></h2>
     <div id="cuestionario"></div>
+
+    <!-- Campo de texto para el código de la materia -->
+    <input type="text" id="codigoMateriaInput" placeholder="Introduce el código de la materia" />
     <button id="asignarExamen">Asignar Examen a los Alumnos</button>
 
     <!-- Firebase y JavaScript -->
@@ -134,6 +156,7 @@
         const asignarExamenBtn = document.getElementById("asignarExamen");
         const cuestionarioDiv = document.getElementById("cuestionario");
         const tituloExamen = document.getElementById("tituloExamen");
+        const codigoMateriaInput = document.getElementById("codigoMateriaInput"); // Campo de texto para el código
 
         // Al cambiar la materia, carga los exámenes correspondientes
         materiaSelect.addEventListener("change", () => {
@@ -143,7 +166,6 @@
             if (materiaSeleccionada) {
                 onValue(ref(database, 'examenes'), (snapshot) => {
                     const examenes = snapshot.val();
-
                     for (let id in examenes) {
                         const examen = examenes[id];
                         if (examen.materia === materiaSeleccionada) {
@@ -167,7 +189,7 @@
                 // Cargar el nombre del examen
                 onValue(ref(database, `examenes/${examenId}`), (snapshot) => {
                     const examen = snapshot.val();
-                    if (examen) { // Verifica que el examen no sea nulo
+                    if (examen) {
                         tituloExamen.textContent = examen.nombre ? examen.nombre : "Título no disponible";
                     } else {
                         alert("No se encontró el examen seleccionado.");
@@ -199,77 +221,75 @@
                             cuestionarioDiv.appendChild(preguntaDiv);
                         }
                     } else {
-                        cuestionarioDiv.innerHTML = '<p>No hay preguntas disponibles para este examen.</p>'; // Mensaje si no hay preguntas
+                        cuestionarioDiv.innerHTML = '<p>No hay preguntas para este examen.</p>';
                     }
+                }, (error) => {
+                    console.error("Error al cargar preguntas:", error);
+                    alert("Hubo un error al cargar las preguntas del examen.");
                 });
             } else {
                 alert("Por favor, selecciona un examen.");
             }
         });
 
-        // Asignar examen a los alumnos registrados en la materia
-        asignarExamenBtn.addEventListener("click", () => {
+        // Asignar examen a los alumnos
+        asignarExamenBtn.addEventListener("click", async () => {
             const examenId = examenSelect.value;
-            const materiaSeleccionada = materiaSelect.options[materiaSelect.selectedIndex].text;
+            const codigoMateria = codigoMateriaInput.value;
 
-            if (!examenId) {
-                alert("Por favor, selecciona un examen.");
-                return;
+            if (examenId && codigoMateria) {
+                try {
+                    // Obtener IDs de los alumnos por el código de la materia
+                    const idsAlumnos = await obtenerAlumnosPorCodigoMateria(codigoMateria);
+                    if (idsAlumnos.length > 0) {
+                        for (let idAlumno of idsAlumnos) {
+                            const examenAsignadoRef = ref(database, `examenes/${examenId}/asignaciones/${idAlumno}`);
+                            // Actualizar la asignación con solo el ID del alumno y el valor true
+                            await update(examenAsignadoRef, {
+                                [idAlumno]: true // Guardar solo el ID del alumno como clave con valor true
+                            });
+                        }
+                        alert("Examen asignado a los alumnos correctamente.");
+                    } else {
+                        alert("No se encontraron alumnos para el código de materia proporcionado.");
+                    }
+                } catch (error) {
+                    console.error("Error al asignar el examen:", error);
+                    alert("Hubo un error al asignar el examen. Intenta nuevamente.");
+                }
+            } else {
+                alert("Por favor, selecciona un examen y proporciona un código de materia.");
             }
+        });
 
-            // Obtener la lista de alumnos
-            onValue(ref(database, 'students'), (snapshot) => {
-                const alumnos = snapshot.val();
-                const examenesRef = ref(database, `examenes/${examenId}/asignaciones`);
+        // Función para obtener IDs de alumnos por el código de materia
+        async function obtenerAlumnosPorCodigoMateria(codigoMateria) {
+            return new Promise((resolve) => {
+                onValue(ref(database, 'students'), (snapshot) => {
+                    const alumnos = snapshot.val();
+                    const ids = [];
 
-                // Crear un objeto para almacenar las asignaciones
-                let asignaciones = {};
-                let contadorAlumnosAsignados = 0; // Inicializa el contador de alumnos asignados
+                    console.log("Código de materia ingresado:", codigoMateria); // Para debug
 
-                console.log("Materia seleccionada:", materiaSeleccionada);
-                console.log("Alumnos obtenidos:", alumnos);
-
-                for (let id in alumnos) {
-                    const alumno = alumnos[id];
-                    let estaEnMateria = false;
-
-                    // Verificar cada ficha del alumno para ver si está en la materia seleccionada
-                    if (alumno.fichas) {
-                        for (let fichaKey in alumno.fichas) {
-                            const ficha = alumno.fichas[fichaKey];
-                            console.log(`Revisando ficha de ${alumno.nombre || id}:`, ficha);
-
-                            // Verificar si la materia coincide
-                            if (ficha.materia === materiaSeleccionada) {
-                                estaEnMateria = true; // Marcar que el alumno está en la materia
-                                break; // No es necesario seguir revisando las fichas
+                    if (alumnos) {
+                        for (let id in alumnos) {
+                            const fichas = alumnos[id].fichas;
+                            if (fichas) {
+                                for (let codigoFicha in fichas) {
+                                    // Verificar si el código de ficha coincide con el códigoMateria
+                                    if (fichas[codigoFicha].codigo === codigoMateria) {
+                                        ids.push(id); // Guardar el ID del alumno
+                                    }
+                                }
                             }
                         }
                     }
 
-                    if (estaEnMateria) {
-                        console.log(`Asignando examen a ${alumno.nombre || id}`);
-                        asignaciones[id] = true; // Marcar el examen como asignado a este estudiante
-                        contadorAlumnosAsignados++; // Incrementar el contador
-                    }
-                }
-
-                // Realizar la actualización en Firebase con un solo update
-                update(examenesRef, asignaciones)
-                    .then(() => {
-                        // Construir el mensaje de confirmación con el número de alumnos
-                        const mensaje = `Examen asignado a ${contadorAlumnosAsignados} alumno(s) registrados en la materia de ${materiaSeleccionada}.`;
-                        alert(mensaje);
-                    })
-                    .catch((error) => {
-                        console.error("Error al asignar el examen:", error);
-                        alert("Hubo un error al asignar el examen.");
-                    });
-            }, (error) => {
-                console.error("Error al obtener los alumnos:", error);
-                alert("Hubo un error al obtener la lista de alumnos.");
+                    console.log("IDs encontrados:", ids); // Para debug
+                    resolve(ids);
+                });
             });
-        });
+        }
     </script>
 </body>
 </html>

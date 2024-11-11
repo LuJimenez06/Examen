@@ -6,13 +6,13 @@
     <title>Inicio - Alumno</title>
     <link rel="stylesheet" href="alumno.css">
     <style>
-        /* Puedes agregar estilos CSS aquí si lo necesitas */
         .user-info {
             font-size: 1.2em;
             margin: 10px 0;
             color: #333;
         }
     </style>
+    <script src="auth.js"></script> 
 </head>
 <body>
     <!-- Barra de navegación -->
@@ -39,42 +39,21 @@
             <div class="dashboard-section">
                 <h2>Datos Personales</h2>
                 <p>Consulta y actualiza tu información personal.</p>
-                <button onclick="location.href='datos_alumno.html'">Ver Datos</button>
+                <button onclick="location.href='datos_alumno.html?studentId=alumno1'">Ver Datos</button>
             </div>
 
             <div class="dashboard-section">
                 <h2>Materias</h2>
                 <p>Revisa las materias en las que estás inscrito.</p>
-                <button onclick="location.href='materias.html'">Ver Materias</button>
+                <button onclick="location.href='materias.html?studentId=alumno1'">Ver Materias</button>
             </div>
 
             <div class="dashboard-section">
                 <h2>Exámenes</h2>
                 <p>Accede a tus exámenes y consulta resultados anteriores.</p>
-                <button onclick="location.href='examenes_alumno.html'">Ver Exámenes</button>
+                <button onclick="location.href='examenes_alumno.html?studentId=alumno1'">Ver Exámenes</button>
             </div>
         </div>
     </div>
-
-    <script>
-        // Recuperar el nombre del usuario del almacenamiento local y mostrarlo
-        const username = localStorage.getItem('username');
-        const userType = localStorage.getItem('userType'); // También se puede obtener el tipo de usuario si se desea
-        const userInfoDiv = document.getElementById('user-info');
-
-        if (username) {
-            userInfoDiv.textContent = `Usuario: ${username} (${userType})`; // Mostrar el tipo de usuario si es necesario
-        } else {
-            userInfoDiv.textContent = 'Usuario no autenticado.';
-            // Redirigir a la página de inicio si no hay usuario autenticado
-            window.location.href = 'index.html';
-        }
-
-        // Manejar la acción de cerrar sesión
-        document.getElementById('logout').addEventListener('click', () => {
-            localStorage.removeItem('username'); // Eliminar el nombre de usuario del almacenamiento local
-            localStorage.removeItem('userType'); // Eliminar el tipo de usuario si es necesario
-        });
-    </script>
 </body>
 </html>

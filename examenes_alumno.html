@@ -22,6 +22,7 @@
         input[type="text"] { width: calc(100% - 20px); padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
         #tituloExamen { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
         #nombreAlumno { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
+        #resultadoCalificacion { text-align: center; font-size: 1.5em; color: #555; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -41,10 +42,21 @@
     <h1>Exámenes Creados</h1>
 
     <div id="nombreAlumno"></div>
+    <div id="resultadoCalificacion"></div>
     
     <select id="materiaSelect">
         <option value="">Selecciona una Materia</option>
         <option value="Matematicas">Matemáticas</option>
+        <option value="Español">Español</option>
+        <option value="Historia">Historia</option>
+        <option value="Geografia">Geografía</option>
+        <option value="Biologia">Biología</option>
+        <option value="Fisica">Física</option>
+        <option value="Quimica">Química</option>
+        <option value="Civica">Cívica</option>
+        <option value="Artes">Artes</option>
+        <option value="Informatica">Informática</option>
+        <option value="Etica">Ética</option>
     </select>
     
     <select id="examenSelect">
@@ -55,6 +67,7 @@
     <h2 id="tituloExamen"></h2>
     <div id="cuestionario"></div>
     <button id="enviarRespuestas">Enviar Respuestas</button>
+    <div id="resultadoCalificacion"></div>
     <script type="module">
         // Importar Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
@@ -77,23 +90,29 @@
     
         // Obtener ID del alumno a partir del nombre de usuario
         async function getStudentIdByUsername(username) {
-            const usersRef = ref(database, 'usuarios/');
-            const snapshot = await get(usersRef);
-            if (snapshot.exists()) {
-                const users = snapshot.val();
-                for (let id in users) {
-                    if (users[id].username === username) {
-                        return id; // Devuelve el ID del alumno
+            try {
+                const usersRef = ref(database, 'usuarios/');
+                const snapshot = await get(usersRef);
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    for (let id in users) {
+                        if (users[id].username === username) {
+                            return id; // Devuelve el ID del alumno
+                        }
                     }
                 }
+                return null; // No se encontró el usuario
+            } catch (error) {
+                console.error("Error al obtener el ID del estudiante:", error);
+                alert("Ocurrió un error al obtener tus datos. Por favor, intenta de nuevo más tarde.");
+                return null; // Asegurarse de que se devuelva null en caso de error
             }
-            return null; // No se encontró el usuario
         }
     
         // Cuando se carga la página
         document.addEventListener('DOMContentLoaded', async () => {
-            const username = localStorage.getItem('username'); // O de donde lo estés obteniendo
-            const alumnoId = await getStudentIdByUsername(username); // Obtener ID de alumno
+            const username = localStorage.getItem('username');
+            const alumnoId = await getStudentIdByUsername(username);
     
             if (!alumnoId) {
                 alert('No se encontró un alumno asociado a este usuario.');
@@ -109,7 +128,7 @@
             const nombreAlumnoDiv = document.getElementById("nombreAlumno");
     
             // Mostrar el nombre del alumno
-            nombreAlumnoDiv.textContent = username; // Aquí puedes cambiar a nombre real si lo tienes
+            nombreAlumnoDiv.textContent = username;
     
             materiaSelect.addEventListener("change", () => {
                 const materiaSeleccionada = materiaSelect.value;
@@ -130,14 +149,15 @@
                 }
             });
     
+            // Al cargar el examen
             cargarExamenBtn.addEventListener("click", async () => {
                 const examenId = examenSelect.value;
                 if (examenId) {
                     // Verificar si el alumno tiene asignado el examen
-                    const examenRef = ref(database, `alumnos/${alumnoId}/examenes/${examenId}`);
-                    const examenSnapshot = await get(examenRef);
+                    const asignacionesRef = ref(database, `examenes/${examenId}/asignaciones/${alumnoId}`);
+                    const asignacionSnapshot = await get(asignacionesRef);
                     
-                    if (!examenSnapshot.exists()) {
+                    if (!asignacionSnapshot.exists()) {
                         alert('No tienes acceso a este examen.');
                         return; // Detener la ejecución si no hay examen asignado
                     }
@@ -148,10 +168,18 @@
                         tituloExamen.textContent = examen.nombre ? examen.nombre : "Título no disponible";
                     });
     
-                    // Cargar las preguntas del examen
+                    // Crear campo de nombre y preguntas del examen
+                    cuestionarioDiv.innerHTML = ''; // Limpiar preguntas anteriores
+                    const nombreAlumnoField = document.createElement("div");
+                    nombreAlumnoField.innerHTML = `
+                        <label>Nombre completo:</label>
+                        <input type="text" id="nombreCompletoAlumno" placeholder="Escribe tu nombre completo aquí" required>
+                        <br><br>
+                    `;
+                    cuestionarioDiv.appendChild(nombreAlumnoField);
+    
                     onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
                         const preguntas = snapshot.val();
-                        cuestionarioDiv.innerHTML = ''; // Limpiar preguntas anteriores
                         for (let id in preguntas) {
                             const preguntaObj = preguntas[id];
                             const preguntaDiv = document.createElement("div");
@@ -171,24 +199,37 @@
             });
     
             enviarRespuestasBtn.addEventListener("click", () => {
+                const nombreCompleto = document.getElementById("nombreCompletoAlumno").value;
+                if (!nombreCompleto) {
+                    alert("Por favor, ingresa tu nombre completo.");
+                    return;
+                }
+    
                 const respuestas = {};
                 const preguntas = cuestionarioDiv.querySelectorAll('.pregunta');
+    
                 preguntas.forEach((preguntaDiv) => {
-                    const preguntaId = preguntaDiv.querySelector('input[type="radio"]').name;
                     const respuestaSeleccionada = preguntaDiv.querySelector('input[type="radio"]:checked');
-                    respuestas[preguntaId] = respuestaSeleccionada ? respuestaSeleccionada.value : null; // Guardar respuesta o null
+                    
+                    if (respuestaSeleccionada) {
+                        const preguntaId = respuestaSeleccionada.name;
+                        respuestas[preguntaId] = respuestaSeleccionada.value;
+                    } else {
+                        const preguntaId = preguntaDiv.querySelector('input[type="radio"]').name;
+                        respuestas[preguntaId] = null;
+                    }
                 });
     
                 const examenId = examenSelect.value;
     
-                // Guardar respuestas del alumno en Firebase
-                const respuestasRef = ref(database, `alumnos/${alumnoId}/examenes/${examenId}/respuestas`);
-                set(respuestasRef, respuestas).then(() => {
-                    // Comparar respuestas del alumno con las soluciones
+                // Guardar respuestas y nombre completo en Firebase
+                const respuestasRef = ref(database, `alumnos/${alumnoId}/examenes/${examenId}`);
+                set(respuestasRef, { respuestas, nombreCompleto }).then(() => {
+                    // Comparar respuestas con las soluciones
                     onValue(ref(database, `examenes/${examenId}/preguntas`), (snapshot) => {
                         const preguntas = snapshot.val();
                         let respuestasCorrectas = 0;
-                        let totalPreguntas = Object.keys(preguntas).length; // Total de preguntas
+                        const totalPreguntas = Object.keys(preguntas).length;
     
                         for (const [id, pregunta] of Object.entries(preguntas)) {
                             if (respuestas[id] === pregunta.solucion) {
@@ -196,17 +237,21 @@
                             }
                         }
     
+                        // Calcular calificación
                         const calificacion = (respuestasCorrectas / totalPreguntas) * 100;
     
-                        // Guardar calificación en el nodo correspondiente
+                        // Guardar calificación en Firebase
                         const calificacionRef = ref(database, `alumnos/${alumnoId}/materias/PLQV8S/calificaciones/${examenId}`);
                         set(calificacionRef, calificacion).then(() => {
                             alert(`Respuestas enviadas. Calificación: ${calificacion.toFixed(2)}%`);
                         });
                     });
+                }).catch((error) => {
+                    console.error("Error al guardar las respuestas:", error);
+                    alert("Ocurrió un error al enviar tus respuestas. Intenta nuevamente más tarde.");
                 });
             });
         });
-    </script>    
+    </script>       
 </body>
 </html>

@@ -150,3 +150,181 @@
     </script>
 </body>
 </html>
+
+
+<fieldset>
+                <legend>Materias que imparte:</legend>
+                <label><input type="checkbox" id="materia_matematicas" value="matematicas"> Matemáticas</label><br>
+                <label><input type="checkbox" id="materia_español" value="español"> Español</label><br>
+                <label><input type="checkbox" id="materia_historia" value="historia"> Historia</label><br>
+                <label><input type="checkbox" id="materia_geografia" value="geografia"> Geografía</label><br>
+                <label><input type="checkbox" id="materia_biologia" value="biologia"> Biología</label><br>
+                <label><input type="checkbox" id="materia_fisica" value="fisica"> Física</label><br>
+                <label><input type="checkbox" id="materia_quimica" value="quimica"> Química</label><br>
+                <label><input type="checkbox" id="materia_civica" value="civica"> Cívica</label><br>
+                <label><input type="checkbox" id="materia_artes" value="artes"> Artes</label><br>
+                <label><input type="checkbox" id="materia_informatica" value="informatica"> Informática</label><br>                
+                <label><input type="checkbox" id="materia_etica" value="etica"> Ética</label><br>
+            </fieldset>
+
+
+"alumnos": {
+    "-OAaDfhf3gdIAte0ci3A": {
+      "examenes": {
+        "-OAaU52gO0F4vQ7HN5M1": {
+          "respuestas": {
+            "-OAaUCJsJribrmdE8adb": "A",
+            "-OAadVyFNrD4l2c90BF6": "A",
+            "-OAae86EfKbwq2p0vPWe": "C"
+          }
+        }
+      },
+      "materias": {
+        "PLQV8S": {
+          "calificaciones": {
+            "-OAaU52gO0F4vQ7HN5M1": 100
+          }
+        }
+      }
+    },
+    "-OAdsVzTMo1lM8JNuDjv": {
+      "examenes": {
+        "-OAaU52gO0F4vQ7HN5M1": {
+          "respuestas": {
+            "-OAaUCJsJribrmdE8adb": "A",
+            "-OAadVyFNrD4l2c90BF6": "B",
+            "-OAae86EfKbwq2p0vPWe": "C"
+          }
+        }
+      },
+      "materias": {
+        "PLQV8S": {
+          "calificaciones": {
+            "-OAaU52gO0F4vQ7HN5M1": 66.66666666666666
+          }
+        }
+      }
+    }
+}, Que sea algo así, pero con el nombre del alumno
+
+
+
+
+
+<div class="checkbox-group">
+                <label><input type="checkbox" id="materia_matematicas" value="Matematicas"> Matemáticas</label><br>
+                <label><input type="checkbox" id="materia_español" value="Español"> Español</label><br>
+                <label><input type="checkbox" id="materia_historia" value="Historia"> Historia</label><br>
+                <label><input type="checkbox" id="materia_geografia" value="Geografia"> Geografía</label><br>
+                <label><input type="checkbox" id="materia_biologia" value="Biologia"> Biología</label><br>
+                <label><input type="checkbox" id="materia_fisica" value="Fisica"> Física</label><br>
+                <label><input type="checkbox" id="materia_quimica" value="Quimica"> Química</label><br>
+                <label><input type="checkbox" id="materia_civica" value="Civica"> Cívica</label><br>
+                <label><input type="checkbox" id="materia_artes" value="Artes"> Artes</label><br>
+                <label><input type="checkbox" id="materia_informatica" value="Informatica"> Informática</label><br>                
+                <label><input type="checkbox" id="materia_etica" value="Etica"> Ética</label><br>
+            </div>
+
+
+
+
+
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Materia</th>
+                            <th>Número de Clases</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_matematicas" value="Matematicas"> Matemáticas</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_español" value="Español"> Español</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_historia" value="Historia"> Historia</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_geografia" value="Geografia"> Geografía</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_biologia" value="Biologia"> Biología</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_fisica" value="Fisica"> Física</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_quimica" value="Quimica"> Química</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_civica" value="Civica"> Cívica</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_artes" value="Artes"> Artes</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_informatica" value="Informatica"> Informática</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label><input type="checkbox" id="materia_etica" value="Etica"> Ética</label>
+                            </td>
+                            <td>
+                                <input type="number" min="1" value="1" class="class-count" placeholder="Clases" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
